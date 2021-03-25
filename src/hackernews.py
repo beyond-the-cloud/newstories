@@ -3,8 +3,6 @@ from kafka import KafkaProducer
 import logging
 import sys
 from prometheus_client import start_http_server, Summary, Counter
-import random
-import time
 
 # set log
 logger = logging.getLogger("newstories-logger")
