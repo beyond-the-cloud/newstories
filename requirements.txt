@@ -2,3 +2,4 @@ requests
 kafka-python
 logging
 sys
+prometheus_client
