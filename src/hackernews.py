@@ -4,7 +4,6 @@ import logging
 import sys
 from prometheus_client import (
   push_to_gateway,
-  start_http_server,
   Counter,
   CollectorRegistry,
   Gauge,
@@ -53,6 +52,7 @@ def send_id_to_kafka(id):
     logger.info("kafka producer sending newstories id: " + str(id))
     producer.flush()
 
+
 if __name__ == '__main__':
   # get ids from hackernews
   response = requests.get('https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty')
@@ -62,10 +62,6 @@ if __name__ == '__main__':
   push_to_gateway(PUSH_GATEWAY, job='pushgateway', registry=REGISTRY)
   # add logs
   logger.info("got newstories ids from HackerNews")
-
-  # Start up the server to expose the metrics.
-  start_http_server(8080)
-
   # send id with kafka producer
   for id in ids:
     send_id_to_kafka(id)
