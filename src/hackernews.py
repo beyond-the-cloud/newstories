@@ -19,10 +19,10 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 producer = KafkaProducer(bootstrap_servers='kafka-0.kafka-headless.default.svc.cluster.local:9092')
 
 # Create a metric to track time spent and requests made.
-PUSH_GATEWAY = "prometheus-prometheus-pushgateway:9091"
+PUSH_GATEWAY = "http://prometheus-prometheus-pushgateway:9091"
 REGISTRY = CollectorRegistry()
 
-KAFKA_COUNTER = Gauge("newstories_kafka_count", "Count of newstories sending message to kafka")
+KAFKA_COUNTER = Counter("newstories_kafka_counter", "Count of newstories sending message to kafka")
 REQUEST_TIME = Summary('newstories_kafka_duration', 'Time newstories kafka producer spent sending messages')
 COUNTER = Counter('newstories_hackernews_counter', 'Count of newstories visiting HackerNews')
 
@@ -33,23 +33,14 @@ REGISTRY.register(REQUEST_TIME)
 REGISTRY.register(COUNTER)
 
 
-def count_kafka(f):
-    def kafka_count(*args, **kwargs):
-        result = f(*args, **kwargs)
-        for k,v in result.iteritems():
-            KAFKA_COUNTER.labels(device_type=k).set(v)
-        push_to_gateway(PUSH_GATEWAY, job='newstories_cronjob', registry=REGISTRY)
-        return result
-    return kafka_count
-
-
 # Decorate function with metric.
 @REQUEST_TIME.time()
-@count_kafka
 def send_id_to_kafka(id):
     producer.send('newstories', str(id).encode())
     # add logs
     logger.info("kafka producer sending newstories id: " + str(id))
+    KAFKA_COUNTER.inc()
+    push_to_gateway(PUSH_GATEWAY, job='newstories_cronjob', registry=REGISTRY)
     producer.flush()
 
 
@@ -57,11 +48,12 @@ if __name__ == '__main__':
   # get ids from hackernews
   response = requests.get('https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty')
   ids = json.loads(response.text)
-  # Increment by 1
+  # increment by 1
   COUNTER.inc()
-  push_to_gateway(PUSH_GATEWAY, job='newstories_cronjob', registry=REGISTRY)
   # add logs
   logger.info("got newstories ids from HackerNews")
   # send id with kafka producer
   for id in ids:
     send_id_to_kafka(id)
+  # push metrics to pushgateway
+  push_to_gateway(PUSH_GATEWAY, job='newstories_cronjob', registry=REGISTRY)
