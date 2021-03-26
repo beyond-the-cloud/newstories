@@ -19,7 +19,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 producer = KafkaProducer(bootstrap_servers='kafka-0.kafka-headless.default.svc.cluster.local:9092')
 
 # Create a metric to track time spent and requests made.
-PUSH_GATEWAY = "prometheus-prometheus-pushgateway:9091"
+PUSH_GATEWAY = "prometheus-prometheus-pushgateway.monitoring:9091"
 REGISTRY = CollectorRegistry()
 
 KAFKA_COUNTER = Gauge("newstories_kafka_count", "Count of newstories sending message to kafka")
