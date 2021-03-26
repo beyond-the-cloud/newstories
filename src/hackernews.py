@@ -19,7 +19,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 producer = KafkaProducer(bootstrap_servers='kafka-0.kafka-headless.default.svc.cluster.local:9092')
 
 # Create a metric to track time spent and requests made.
-PUSH_GATEWAY = "prometheus-prometheus-pushgateway.monitoring:9091"
+PUSH_GATEWAY = "prometheus-prometheus-pushgateway:9091"
 REGISTRY = CollectorRegistry()
 
 KAFKA_COUNTER = Gauge("newstories_kafka_count", "Count of newstories sending message to kafka")
@@ -38,7 +38,7 @@ def count_kafka(f):
         result = f(*args, **kwargs)
         for k,v in result.iteritems():
             KAFKA_COUNTER.labels(device_type=k).set(v)
-        push_to_gateway(PUSH_GATEWAY, job='pushgateway', registry=REGISTRY)
+        push_to_gateway(PUSH_GATEWAY, job='newstories_cronjob', registry=REGISTRY)
         return result
     return kafka_count
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
   ids = json.loads(response.text)
   # Increment by 1
   COUNTER.inc()
-  push_to_gateway(PUSH_GATEWAY, job='pushgateway', registry=REGISTRY)
+  push_to_gateway(PUSH_GATEWAY, job='newstories_cronjob', registry=REGISTRY)
   # add logs
   logger.info("got newstories ids from HackerNews")
   # send id with kafka producer
