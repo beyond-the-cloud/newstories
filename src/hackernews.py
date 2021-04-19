@@ -1,3 +1,4 @@
+import os
 import requests, json
 from kafka import KafkaProducer
 import logging
@@ -14,7 +15,8 @@ logger = logging.getLogger("newstories-logger")
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # init kafka producer
-producer = KafkaProducer(bootstrap_servers='kafka-0.kafka-headless.default.svc.cluster.local:9092')
+kafka_server = os.environ.get('KAFKA_HOST') + ':' + os.environ.get('KAFKA_PORT')
+producer = KafkaProducer(bootstrap_servers=kafka_server)
 
 # Create a metric to track time spent and requests made.
 PUSH_GATEWAY = "http://prometheus-prometheus-pushgateway.default:9091"
