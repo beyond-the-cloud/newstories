@@ -19,11 +19,11 @@ kafka_server = os.environ.get('KAFKA_HOST') + ':' + os.environ.get('KAFKA_PORT')
 producer = KafkaProducer(bootstrap_servers=kafka_server)
 
 # test if Istio SideCar is ready
-while requests.get('http://localhost:15021/healthz/ready').status_code != 200:
-  logger.info("Waiting for SideCar get ready...")
-  time.sleep(1)
+# while requests.get('http://localhost:15021/healthz/ready').status_code != 200:
+#   logger.info("Waiting for SideCar get ready...")
+#   time.sleep(1)
 
-logger.info("SideCar is running, start getting stories")
+# logger.info("SideCar is running, start getting stories")
 
 # Create a metric to track time spent and requests made.
 PUSH_GATEWAY = "http://prometheus-prometheus-pushgateway.default:9091"
